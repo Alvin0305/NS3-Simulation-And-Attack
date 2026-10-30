@@ -1,0 +1,8 @@
+.cache
+.vscode
+build
+build-support
+cmake-cache
+compile_commands.json
+doc
+LICENSES
