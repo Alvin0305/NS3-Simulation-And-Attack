@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "ns3/application.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/network-module.h"
@@ -10,7 +11,9 @@ class Attacker : public Application {
 public:
   static TypeId GetTypeId();
 
-  Attacker();
+  const IIoTConfig &config;
+
+  Attacker(const IIoTConfig &config);
   ~Attacker() override;
 
   void SetTarget(Ipv4Address address);
@@ -18,9 +21,14 @@ public:
 private:
   void StartApplication() override;
   void StopApplication() override;
+
   void HandleRead(Ptr<Socket> socket);
 
+  void SendSpoofedCommand();
+
   Ptr<Socket> socket;
+  Ptr<Socket> rawSocket;
+
   Ipv4Address targetAddress;
   uint16_t messageId;
 };

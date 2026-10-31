@@ -1,4 +1,5 @@
 #include "Attacker.h"
+#include "ConfigParser.h"
 #include "Cooler.h"
 #include "PLC.h"
 #include "Sensor.h"
@@ -10,6 +11,9 @@
 using namespace ns3;
 
 int main(int argc, char *argv[]) {
+  ConfigParser parser;
+  IIoTConfig config = parser.parse("config.ip-spoof.json");
+
   NodeContainer nodes;
   nodes.Create(4);
 
@@ -63,7 +67,7 @@ int main(int argc, char *argv[]) {
   coolerApp->SetStartTime(Seconds(0.0));
   coolerApp->SetStopTime(Seconds(5.5));
 
-  Ptr<Attacker> attackerApp = CreateObject<Attacker>();
+  Ptr<Attacker> attackerApp = CreateObject<Attacker>(config);
   attackerApp->SetTarget(coolerAddress);
   attacker->AddApplication(attackerApp);
   attackerApp->SetStartTime(Seconds(2.5));

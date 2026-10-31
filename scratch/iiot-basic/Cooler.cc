@@ -1,5 +1,6 @@
 #include "Cooler.h"
 #include "Coap.h"
+#include "Constants.h"
 #include "Logger.h"
 #include <cstdint>
 #include <fcntl.h>
@@ -24,8 +25,8 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
   Address senderAddress;
   Ptr<Packet> packet;
 
-  // Added authorization
-  const Ipv4Address authorizedPLCAddress("10.1.1.2");
+  // Added source IP based authorization
+  const Ipv4Address authorizedPLCAddress(constants::plcIP);
 
   while ((packet = socket->RecvFrom(senderAddress))) {
     std::vector<uint8_t> bytes(packet->GetSize());

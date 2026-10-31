@@ -1,0 +1,4 @@
+[2.500 s] [Attacker] [Attacker.cc:45] [INFO] Sending unauthorized command
+[2.500 s] [Attacker] [Attacker.cc:53] [INFO] Send POST /command payload=COOLER OFF MID=500
+[2.504 s] [Attacker] [Attacker.cc:89] [INFO] Received response code=131, MID=500
+[2.504 s] [Attacker] [Attacker.cc:99] [WARN] Command REJECTED by the cooler: unauthorized sender. MID=500

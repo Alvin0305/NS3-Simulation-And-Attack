@@ -1,0 +1,4 @@
+{
+  "do-direct-command-injection": false,
+  "send-spoofed-packet": true
+}

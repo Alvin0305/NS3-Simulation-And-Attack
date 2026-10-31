@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "Cooler.h"
 #include "ns3/internet-module.h"
 #include <format>
@@ -21,6 +22,15 @@ struct std::formatter<Cooler::Status> : std::formatter<std::string> {
   auto format(const Cooler::Status &status, auto &ctx) const {
     std::ostringstream oss;
     oss << status;
+
+    return std::formatter<std::string>::format(oss.str(), ctx);
+  }
+};
+
+template <> struct std::formatter<IIoTConfig> : std::formatter<std::string> {
+  auto format(const IIoTConfig &config, auto &ctx) const {
+    std::ostringstream oss;
+    oss << config;
 
     return std::formatter<std::string>::format(oss.str(), ctx);
   }

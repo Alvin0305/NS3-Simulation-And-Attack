@@ -1,0 +1,11 @@
+[0.000 s] [Cooler] [Cooler.cc:13] [INFO] CoAP server started on UDP port: 5683
+[1.010 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=100, payload=COOLER OFF
+[1.010 s] [Cooler] [Cooler.cc:92] [INFO] Status unchanged: OFF, source=10.1.1.2
+[2.000 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=101, payload=COOLER ON
+[2.000 s] [Cooler] [Cooler.cc:88] [INFO] Status changed: OFF -> ON, source=10.1.1.2
+[2.504 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.4, path=/command, MID=500, payload=COOLER OFF
+[2.504 s] [Cooler] [Cooler.cc:65] [WARN] ACCESS DENIED. source=10.1.1.4, authorized plc=10.1.1.2 reason=unauthorized sender
+[3.000 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=102, payload=COOLER ON
+[3.000 s] [Cooler] [Cooler.cc:92] [INFO] Status unchanged: ON, source=10.1.1.2
+[4.000 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=103, payload=COOLER OFF
+[4.000 s] [Cooler] [Cooler.cc:88] [INFO] Status changed: ON -> OFF, source=10.1.1.2

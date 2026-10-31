@@ -1,0 +1,56 @@
+alvin@alvin-laptop ~/Me/NITC/Sem7/Minor/Assignment3/ns-3.49 (master)
+❯ ns3 run scratch/iiot-basic/main.cc
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+
+========== IIoT LAN ==========
+Sensor:   10.1.1.1
+PLC:      10.1.1.2
+Actuator: 10.1.1.3
+Attacker: 10.1.1.4
+==============================
+
+
+Starting IIoT CoAP Simluation
+
+[0.000 s] [PLC] [PLC.cc:29] [INFO] CoAP Server started on UDP port: 5683
+[0.000 s] [Cooler] [Cooler.cc:13] [INFO] CoAP server started on UDP port: 5683
+[1.000 s] [Sensor] [Sensor.cc:20] [INFO] CoAP client started
+[1.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=65.0, MID=1
+[1.008 s] [PLC] [PLC.cc:62] [INFO] Received CoAP request path=/temperature code=2, MID=1
+[1.008 s] [PLC] [PLC.cc:94] [INFO] Temperature=65 C, threshold=70 C, Decision=COOLER OFF
+[1.008 s] [PLC] [PLC.cc:105] [INFO] CoAP POST /command payload=COOLER OFF, MID=100
+[1.010 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=100, payload=COOLER OFF
+[1.010 s] [Cooler] [Cooler.cc:92] [INFO] Status unchanged: OFF, source=10.1.1.2
+[1.010 s] [PLC] [PLC.cc:125] [INFO] Actuator response code=68, MID=100
+[1.011 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=1
+[2.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=85.0, MID=2
+[2.000 s] [PLC] [PLC.cc:62] [INFO] Received CoAP request path=/temperature code=2, MID=2
+[2.000 s] [PLC] [PLC.cc:94] [INFO] Temperature=85 C, threshold=70 C, Decision=COOLER ON
+[2.000 s] [PLC] [PLC.cc:105] [INFO] CoAP POST /command payload=COOLER ON, MID=101
+[2.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=2
+[2.000 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=101, payload=COOLER ON
+[2.000 s] [Cooler] [Cooler.cc:88] [INFO] Status changed: OFF -> ON, source=10.1.1.2
+[2.000 s] [PLC] [PLC.cc:125] [INFO] Actuator response code=68, MID=101
+[2.500 s] [Attacker] [Attacker.cc:60] [INFO] Sending Spoofed command
+[2.500 s] [Attacker] [Attacker.cc:159] [INFO] Successfully Sent spoofed CoAP POST /command payload=COOLER OFF, forged_source=10.1.1.2, destination=10.1.1.3, MID=500
+[2.504 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=500, payload=COOLER OFF
+[2.504 s] [Cooler] [Cooler.cc:88] [INFO] Status changed: ON -> OFF, source=10.1.1.2
+[3.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=85.0, MID=3
+[3.000 s] [PLC] [PLC.cc:62] [INFO] Received CoAP request path=/temperature code=2, MID=3
+[3.000 s] [PLC] [PLC.cc:94] [INFO] Temperature=85 C, threshold=70 C, Decision=COOLER ON
+[3.000 s] [PLC] [PLC.cc:105] [INFO] CoAP POST /command payload=COOLER ON, MID=102
+[3.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=3
+[3.000 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=102, payload=COOLER ON
+[3.000 s] [Cooler] [Cooler.cc:88] [INFO] Status changed: OFF -> ON, source=10.1.1.2
+[3.000 s] [PLC] [PLC.cc:125] [INFO] Actuator response code=68, MID=102
+[4.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=55.0, MID=4
+[4.000 s] [PLC] [PLC.cc:62] [INFO] Received CoAP request path=/temperature code=2, MID=4
+[4.000 s] [PLC] [PLC.cc:94] [INFO] Temperature=55 C, threshold=70 C, Decision=COOLER OFF
+[4.000 s] [PLC] [PLC.cc:105] [INFO] CoAP POST /command payload=COOLER OFF, MID=103
+[4.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=4
+[4.000 s] [Cooler] [Cooler.cc:50] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=103, payload=COOLER OFF
+[4.000 s] [Cooler] [Cooler.cc:88] [INFO] Status changed: ON -> OFF, source=10.1.1.2
+[4.000 s] [PLC] [PLC.cc:125] [INFO] Actuator response code=68, MID=103
+
+Simulation completed.
