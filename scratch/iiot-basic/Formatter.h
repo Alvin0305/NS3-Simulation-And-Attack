@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Config.h"
 #include "Cooler.h"
+#include "IIoTConfig.h"
 #include "ns3/internet-module.h"
 #include <format>
 #include <sstream>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "IIoTConfig.h"
 #include <string>
 
 class ConfigParser {

@@ -1,4 +1,5 @@
 #include "PLC.h"
+#include "Auth.h"
 #include "Coap.h"
 #include "Logger.h"
 #include <cstddef>
@@ -94,16 +95,33 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
     PLC_LOG_INFO("Temperature={} C, threshold={} C, Decision={}", temperature,
                  threshold, command);
 
+    const uint64_t sequence = nextCommandSequence++;
+    const std::string canonicalMessage =
+        std::string("/command\n") + command + "\n" + std::to_string(sequence);
+    const std::string tag = Auth::ComputeTag(canonicalMessage);
+
+    if (tag.empty()) {
+      PLC_LOG_ERROR("Failed to generate HMAC. Command not sent");
+      continue;
+    }
+
+    const std::string authenticatedPayload =
+        command + "|" + std::to_string(sequence) + "|" + tag;
+
     Coap::Message actuatorRequest =
-        Coap::MakePost(nextMessageId++, "command", command);
+        Coap::MakePost(nextMessageId++, "command", authenticatedPayload);
 
     const Address actuatorDestination =
         InetSocketAddress(actuatorAddress, Coap::PORT);
 
-    Coap::Send(clientSocket, actuatorDestination, actuatorRequest);
+    int result = Coap::Send(clientSocket, actuatorDestination, actuatorRequest);
 
-    PLC_LOG_INFO("CoAP POST /command payload={}, MID={}", command,
-                 actuatorRequest.messageId);
+    if (result < 0) {
+      PLC_LOG_ERROR("Failed to send authenticated actuator command");
+    } else {
+      PLC_LOG_INFO("CoAP POST /command payload={}, MID={}", command,
+                   actuatorRequest.messageId);
+    }
   }
 }
 

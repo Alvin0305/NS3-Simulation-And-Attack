@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "IIoTConfig.h"
 #include "ns3/application.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/network-module.h"

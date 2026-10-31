@@ -37,4 +37,7 @@ private:
 
   Ptr<Socket> socket;
   Status status = OFF;
+
+  uint64_t lastAcceptedSequence = 0;
+  bool hasAcceptedSequence = false;
 };

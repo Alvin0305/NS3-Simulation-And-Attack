@@ -1,8 +1,8 @@
 #include "Attacker.h"
 #include "Coap.h"
 
-#include "Config.h"
 #include "Constants.h"
+#include "IIoTConfig.h"
 #include "Logger.h"
 #include "ns3/boolean.h"
 #include "ns3/inet-socket-address.h"
@@ -156,11 +156,10 @@ void Attacker::SendSpoofedCommand() {
   if (result < 0) {
     ATTACKER_LOG_ERROR("Failed to send spoofed command");
   } else {
-    ATTACKER_LOG_INFO(
-        "Successfully Sent spoofed CoAP POST /command payload={}, "
-        "forged_source={}, destination={}, MID={}",
-        constants::coolerOffCommand, constants::plcIP, constants::coolerIP,
-        messageId);
+    ATTACKER_LOG_INFO("Sent spoofed CoAP POST /command payload={}, "
+                      "forged_source={}, destination={}, MID={}",
+                      constants::coolerOffCommand, constants::plcIP,
+                      constants::coolerIP, messageId);
   }
 }
 

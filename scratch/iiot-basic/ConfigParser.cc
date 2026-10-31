@@ -1,5 +1,5 @@
 #include "ConfigParser.h"
-#include "Config.h"
+#include "IIoTConfig.h"
 #include "Logger.h"
 #include "nlohmann/json.hpp"
 #include <exception>

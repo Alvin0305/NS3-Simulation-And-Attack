@@ -27,4 +27,6 @@ private:
 
   double threshold = 70.0;
   uint16_t nextMessageId = 100;
+
+  uint64_t nextCommandSequence = 1;
 };
