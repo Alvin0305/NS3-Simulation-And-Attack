@@ -41,25 +41,17 @@ void Attacker::StartApplication() {
   socket->Bind();
   socket->SetRecvCallback(MakeCallback(&Attacker::HandleRead, this));
 
-  if (config.doDirectCommandInjection) {
-    ATTACKER_LOG_INFO("Sending unauthorized command");
-    Coap::Message request = Coap::MakePost(messageId, "command", "COOLER OFF");
-    const Address destination = InetSocketAddress(targetAddress, Coap::PORT);
-    const int result = Coap::Send(socket, destination, request);
-
-    if (result < 0) {
-      ATTACKER_LOG_ERROR("Failed to send command");
-    } else {
-      ATTACKER_LOG_INFO("Send POST /command payload=COOLER OFF MID={}",
-                        messageId);
-    }
-    messageId++;
+  for (uint32_t i = 0; i < GetNode()->GetNDevices(); i++) {
+    GetNode()->GetDevice(i)->SetPromiscReceiveCallback(
+        MakeCallback(&Attacker::PromiscSniffer, this));
   }
 
-  if (config.sendSpoofedPacket) {
-    ATTACKER_LOG_INFO("Sending Spoofed command");
-    SendSpoofedCommand();
-    messageId++;
+  ATTACKER_LOG_INFO("Promiscous packet capture enabled");
+
+  Simulator::Schedule(Seconds(2.5), &Attacker::SendConfiguredAttacks, this);
+
+  if (config.sendReplayAttack) {
+    Simulator::Schedule(Seconds(4.5), &Attacker::SendReplayAttack, this);
   }
 }
 
@@ -68,6 +60,11 @@ void Attacker::StopApplication() {
     socket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
     socket->Close();
     socket = nullptr;
+  }
+
+  if (rawSocket) {
+    rawSocket->Close();
+    rawSocket = nullptr;
   }
 }
 
@@ -114,15 +111,89 @@ void Attacker::HandleRead(Ptr<Socket> socket) {
     }
   }
 }
-} // namespace ns3
 
 void Attacker::SendSpoofedCommand() {
-  const Ipv4Address forgedSource(constants::plcIP);
-  const Ipv4Address destination(constants::coolerIP);
-
   Coap::Message command = Coap::MakePost(messageId, constants::commandString,
                                          constants::coolerOffCommand);
-  std::vector<uint8_t> coapBytes = Coap::Encode(command);
+
+  const std::vector<uint8_t> bytes = Coap::Encode(command);
+  SendSpoofedCoapBytes(bytes, messageId, "unauthenticated spoofed");
+}
+
+bool Attacker::PromiscSniffer(Ptr<NetDevice> device, Ptr<const Packet> packet,
+                              uint16_t protocol, const Address &from,
+                              const Address &to,
+                              NetDevice::PacketType packetType) {
+  if (protocol != 0x0800) {
+    return false;
+  }
+
+  Ptr<Packet> copy = packet->Copy();
+
+  Ipv4Header ip;
+  if (copy->RemoveHeader(ip) == 0) {
+    return false;
+  }
+
+  if (ip.GetSource() != Ipv4Address(constants::plcIP) ||
+      ip.GetDestination() != Ipv4Address(constants::coolerIP) ||
+      ip.GetProtocol() != constants::protocol::udp) {
+    return false;
+  }
+
+  UdpHeader udp;
+  if (copy->RemoveHeader(udp) == 0) {
+    return false;
+  }
+
+  if (udp.GetDestinationPort() != Coap::PORT) {
+    return false;
+  }
+
+  std::vector<uint8_t> bytes(copy->GetSize());
+  if (bytes.empty()) {
+    return false;
+  }
+
+  copy->CopyData(bytes.data(), static_cast<uint32_t>(bytes.size()));
+
+  Coap::Message message;
+  if (!Coap::Decode(bytes.data(), bytes.size(), message)) {
+    return false;
+  }
+
+  if (message.type != Coap::CON || message.code != Coap::POST ||
+      message.path != constants::commandString) {
+    return false;
+  }
+
+  const size_t first = message.payload.find('|');
+  const size_t second = first == std::string::npos
+                            ? std::string::npos
+                            : message.payload.find('|', first + 1);
+
+  if (first == std::string::npos || second == std::string::npos ||
+      message.payload.size() - second - 1 != 64) {
+    return false;
+  }
+
+  capturedCoapBytes = std::move(bytes);
+  capturedMessageId = message.messageId;
+  hasCapturedCommand = true;
+
+  ATTACKER_LOG_INFO(
+      "Captured PLC command for replay: source={}, MID={}, payload={}",
+      constants::plcIP, capturedMessageId, message.payload);
+
+  return false;
+}
+
+void Attacker::SendSpoofedCoapBytes(const std::vector<uint8_t> &coapBytes,
+                                    uint16_t mid,
+                                    const std::string &attackName) {
+
+  const Ipv4Address forgedSource(constants::plcIP);
+  const Ipv4Address destination(constants::coolerIP);
 
   Ptr<Packet> packet =
       Create<Packet>(coapBytes.data(), static_cast<uint32_t>(coapBytes.size()));
@@ -140,27 +211,97 @@ void Attacker::SendSpoofedCommand() {
   ip.SetDestination(destination);
   ip.SetProtocol(constants::protocol::udp);
   ip.SetTtl(64);
-  ip.SetIdentification(messageId);
+  ip.SetIdentification(mid);
   ip.SetPayloadSize(packet->GetSize());
 
   packet->AddHeader(ip);
 
-  rawSocket =
-      Socket::CreateSocket(GetNode(), Ipv4RawSocketFactory::GetTypeId());
-  rawSocket->SetAttribute("Protocol", UintegerValue(constants::protocol::udp));
-  rawSocket->SetAttribute("IpHeaderInclude", BooleanValue(true));
+  if (!rawSocket) {
+    rawSocket =
+        Socket::CreateSocket(GetNode(), Ipv4RawSocketFactory::GetTypeId());
 
-  Address target = InetSocketAddress(destination, 0);
-  int result = rawSocket->SendTo(packet, 0, target);
+    rawSocket->SetAttribute("Protocol",
+                            UintegerValue(constants::protocol::udp));
+
+    rawSocket->SetAttribute("IpHeaderInclude", BooleanValue(true));
+  }
+
+  const Address target = InetSocketAddress(destination, 0);
+  const int result = rawSocket->SendTo(packet, 0, target);
 
   if (result < 0) {
-    ATTACKER_LOG_ERROR("Failed to send spoofed command");
+    ATTACKER_LOG_ERROR("Failed to send {} attack", attackName);
   } else {
-    ATTACKER_LOG_INFO("Sent spoofed CoAP POST /command payload={}, "
-                      "forged_source={}, destination={}, MID={}",
-                      constants::coolerOffCommand, constants::plcIP,
-                      constants::coolerIP, messageId);
+    ATTACKER_LOG_INFO(
+        "Sent {} packet: forged_source={}, destination={}, MID={}", attackName,
+        constants::plcIP, constants::coolerIP, mid);
   }
 }
 
-; // namespace ns3
+void Attacker::SendInvalidHmacAttack() {
+  const std::string invalidPayload = "COOLER OFF|99|" + std::string(64, '0');
+
+  Coap::Message request =
+      Coap::MakePost(messageId, constants::commandString, invalidPayload);
+
+  const std::vector<uint8_t> bytes = Coap::Encode(request);
+
+  ATTACKER_LOG_INFO("Attempting invalid-HMAC attack: payload={}, MID={}",
+                    invalidPayload, messageId);
+
+  SendSpoofedCoapBytes(bytes, messageId, "invalid-HMAC");
+
+  ++messageId;
+}
+
+void Attacker::SendReplayAttack() {
+  if (!hasCapturedCommand || capturedCoapBytes.empty()) {
+    ATTACKER_LOG_WARN(
+        "Replay attack skipped: no authenticated PLC command captured");
+    return;
+  }
+
+  ATTACKER_LOG_WARN(
+      "Attempting replay attack using captured PLC command: MID={}",
+      capturedMessageId);
+
+  SendSpoofedCoapBytes(capturedCoapBytes, capturedMessageId, "replay");
+
+  ATTACKER_LOG_INFO(
+      "Replayed original CoAP request with its original MID and HMAC");
+}
+
+void Attacker::SendConfiguredAttacks() {
+  if (config.doDirectCommandInjection) {
+    ATTACKER_LOG_INFO("Sending unauthenticated command injection");
+
+    Coap::Message request = Coap::MakePost(messageId, constants::commandString,
+                                           constants::coolerOffCommand);
+
+    const Address destination = InetSocketAddress(targetAddress, Coap::PORT);
+
+    const int result = Coap::Send(socket, destination, request);
+
+    if (result < 0) {
+      ATTACKER_LOG_ERROR("Failed to send unauthenticated command");
+    } else {
+      ATTACKER_LOG_INFO("Sent unauthenticated POST /command, MID={}",
+                        messageId);
+    }
+
+    ++messageId;
+  }
+
+  if (config.sendSpoofedPacket) {
+    ATTACKER_LOG_INFO("Sending spoofed command without HMAC");
+
+    SendSpoofedCommand();
+    ++messageId;
+  }
+
+  if (config.sendInvalidHMAC) {
+    SendInvalidHmacAttack();
+  }
+}
+
+}; // namespace ns3

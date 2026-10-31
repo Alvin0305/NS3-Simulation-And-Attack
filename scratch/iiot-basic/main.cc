@@ -12,7 +12,7 @@ using namespace ns3;
 
 int main(int argc, char *argv[]) {
   ConfigParser parser;
-  IIoTConfig config = parser.parse("config.ip-spoof.json");
+  IIoTConfig config = parser.parse("config.hmac.json");
 
   NodeContainer nodes;
   nodes.Create(4);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   Ptr<Attacker> attackerApp = CreateObject<Attacker>(config);
   attackerApp->SetTarget(coolerAddress);
   attacker->AddApplication(attackerApp);
-  attackerApp->SetStartTime(Seconds(2.5));
+  attackerApp->SetStartTime(Seconds(0.0));
   attackerApp->SetStopTime(Seconds(5.0));
 
   csma.EnablePcapAll("iiot-coap", true);

@@ -24,6 +24,8 @@ IIoTConfig ConfigParser::parse(const std::string configFileName) const {
     config.doDirectCommandInjection =
         j.at("do-direct-command-injection").get<bool>();
     config.sendSpoofedPacket = j.at("send-spoofed-packet").get<bool>();
+    config.sendInvalidHMAC = j.at("send-invalid-hmac").get<bool>();
+    config.sendReplayAttack = j.at("send-replay-attack").get<bool>();
 
     return config;
   } catch (const std::exception &e) {
