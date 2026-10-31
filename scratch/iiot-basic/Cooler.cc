@@ -24,6 +24,9 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
   Address senderAddress;
   Ptr<Packet> packet;
 
+  // Added authorization
+  const Ipv4Address authorizedPLCAddress("10.1.1.2");
+
   while ((packet = socket->RecvFrom(senderAddress))) {
     std::vector<uint8_t> bytes(packet->GetSize());
 
@@ -37,31 +40,58 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
     }
 
     Ipv4Address senderIP = Ipv4Address::GetAny();
-    if (InetSocketAddress::IsMatchingType(senderAddress)) {
-      senderIP = InetSocketAddress::ConvertFrom(senderAddress).GetIpv4();
+    if (not InetSocketAddress::IsMatchingType(senderAddress)) {
+      COOLER_LOG_ERROR("Rejected request (extracting sender address failed)");
+      continue;
     }
 
-    COOLER_LOG_INFO("Received CoAP request from={}, path=/{}, MID={}", senderIP,
-                    request.path, request.messageId);
+    senderIP = InetSocketAddress::ConvertFrom(senderAddress).GetIpv4();
+    COOLER_LOG_INFO(
+        "Received CoAP request from={}, path=/{}, MID={}, payload={}", senderIP,
+        request.path, request.messageId, request.payload);
 
-    uint8_t responseCode = Coap::NOT_FOUND;
+    if (request.type != Coap::CON || request.code != Coap::POST ||
+        request.path != "command") {
+      COOLER_LOG_WARN(
+          "A non CONNECT or non POST or non COMMAND packet came. Rejecting it");
 
-    if (request.type == Coap::CON && request.code == Coap::POST &&
-        request.path == "command") {
-      if (request.payload == "COOLER ON") {
-        COOLER_LOG_INFO("Cooler state=ON");
-        status = ON;
-        responseCode = Coap::CHANGED;
-      } else if (request.payload == "COOLER OFF") {
-        COOLER_LOG_INFO("Cooler state=OFF");
-        status = OFF;
-        responseCode = Coap::CHANGED;
-      } else {
-        COOLER_LOG_ERROR("Unknown command: {}", request.payload);
-      }
-
-      Coap::Message response = Coap::MakeResponse(request, responseCode);
+      Coap::Message response = Coap::MakeResponse(request, Coap::NOT_FOUND);
       Coap::Send(socket, senderAddress, response);
+      continue;
     }
+
+    if (senderIP != authorizedPLCAddress) {
+      COOLER_LOG_WARN("ACCESS DENIED. source={}, authorized plc={} "
+                      "reason=unauthorized sender",
+                      senderIP, authorizedPLCAddress);
+
+      Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
+      Coap::Send(socket, senderAddress, response);
+      continue;
+    }
+
+    Status requestedStatus;
+
+    if (request.payload == "COOLER ON") {
+      requestedStatus = ON;
+    } else if (request.payload == "COOLER OFF") {
+      requestedStatus = OFF;
+    } else {
+      COOLER_LOG_ERROR("Unknown command: {}", request.payload);
+      Coap::Message response = Coap::MakeResponse(request, Coap::NOT_FOUND);
+      Coap::Send(socket, senderAddress, response);
+      continue;
+    }
+
+    if (status != requestedStatus) {
+      COOLER_LOG_INFO("Status changed: {} -> {}, source={}", status,
+                      requestedStatus, senderIP);
+      status = requestedStatus;
+    } else {
+      COOLER_LOG_INFO("Status unchanged: {}, source={}", status, senderIP);
+    }
+
+    Coap::Message response = Coap::MakeResponse(request, Coap::CHANGED);
+    Coap::Send(socket, senderAddress, response);
   }
 }

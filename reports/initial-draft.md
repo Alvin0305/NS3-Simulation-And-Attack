@@ -64,7 +64,7 @@ The first experiment evaluates normal temperature monitoring and control without
 The sensor transmits four readings.
 
 | Simulation time | Temperature | PLC decision | Expected cooler state |
-|---|---:|---|---|
+|---|---|---|---|
 | 1 s | 65°C | COOLER OFF | OFF |
 | 2 s | 85°C | COOLER ON | ON |
 | 3 s | 85°C | COOLER ON | ON |

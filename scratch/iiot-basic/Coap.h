@@ -18,7 +18,8 @@ constexpr uint8_t POST = 2;
 
 // 2.04 Changed
 constexpr uint8_t CHANGED = 68;
-
+// 4.03 Forbidden
+constexpr uint8_t FORBIDDEN = 131;
 // 4.04 Not Found
 constexpr uint8_t NOT_FOUND = 132;
 

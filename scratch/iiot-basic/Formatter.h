@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cooler.h"
 #include "ns3/internet-module.h"
 #include <format>
 #include <sstream>
@@ -10,6 +11,16 @@ struct std::formatter<ns3::Ipv4Address> : std::formatter<std::string> {
   auto format(const ns3::Ipv4Address &address, auto &ctx) const {
     std::ostringstream oss;
     oss << address;
+
+    return std::formatter<std::string>::format(oss.str(), ctx);
+  }
+};
+
+template <>
+struct std::formatter<Cooler::Status> : std::formatter<std::string> {
+  auto format(const Cooler::Status &status, auto &ctx) const {
+    std::ostringstream oss;
+    oss << status;
 
     return std::formatter<std::string>::format(oss.str(), ctx);
   }
