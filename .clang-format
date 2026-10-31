@@ -32,3 +32,8 @@ PointerAlignment: Left
 QualifierAlignment: Left
 SeparateDefinitionBlocks: Always
 Standard: "c++20"
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AllowShortFunctionsOnASingleLine: None
