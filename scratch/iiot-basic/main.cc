@@ -45,28 +45,26 @@ int main(int argc, char *argv[]) {
   std::cout << "==============================\n\n";
 
   Ptr<Sensor> sensorApp = CreateObject<Sensor>();
-  sensorApp->SetDestination(plcAddress, 4000);
-  sensorApp->SetInterval(Seconds(1.0));
+  sensorApp->SetDestination(plcAddress);
   sensor->AddApplication(sensorApp);
   sensorApp->SetStartTime(Seconds(1.0));
   sensorApp->SetStopTime(Seconds(5.0));
 
   Ptr<PLC> plcApp = CreateObject<PLC>();
-  plcApp->SetActuator(coolerAddress, 5000);
+  plcApp->SetActuator(coolerAddress);
   plcApp->SetThreshold(70.0);
   plc->AddApplication(plcApp);
   plcApp->SetStartTime(Seconds(0.0));
   plcApp->SetStopTime(Seconds(5.5));
 
   Ptr<Cooler> coolerApp = CreateObject<Cooler>();
-  coolerApp->setPort(5000);
   cooler->AddApplication(coolerApp);
   coolerApp->SetStartTime(Seconds(0.0));
   coolerApp->SetStopTime(Seconds(5.5));
 
-  csma.EnablePcapAll("iiot-lan", true);
+  csma.EnablePcapAll("iiot-coap", true);
 
-  std::cout << "\nStarting IIoT Temperature Simluation\n" << std::endl;
+  std::cout << "\nStarting IIoT CoAP Simluation\n" << std::endl;
 
   Simulator::Stop(Seconds(6.0));
 

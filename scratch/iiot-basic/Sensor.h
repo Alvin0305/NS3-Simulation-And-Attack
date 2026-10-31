@@ -11,22 +11,20 @@ using namespace ns3;
 
 class Sensor : public Application {
 public:
-  void SetDestination(Ipv4Address address, uint16_t port);
-
-  void SetInterval(Time interval);
+  void SetDestination(Ipv4Address address);
 
 private:
   void StartApplication() override;
   void StopApplication() override;
+
   void SendReading();
+  void HandleResponse(Ptr<Socket> socket);
 
   Ptr<Socket> socket;
 
   Ipv4Address destinationAddress;
-  uint16_t destinationPort = 4000;
-
-  Time interval = Seconds(1.0);
 
   uint32_t sequence = 1;
+  uint16_t nextMessageId = 1;
   EventId sendEvent;
 };

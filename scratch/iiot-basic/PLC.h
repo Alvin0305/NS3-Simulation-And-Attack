@@ -10,20 +10,21 @@ using namespace ns3;
 
 class PLC : public Application {
 public:
-  void SetActuator(Ipv4Address address, uint16_t port);
+  void SetActuator(Ipv4Address address);
   void SetThreshold(double threshold);
 
 private:
   void StartApplication() override;
   void StopApplication() override;
 
-  void HandleRead(Ptr<Socket> socket);
+  void HandleTemperatureRequest(Ptr<Socket> socket);
+  void HandleActuatorResponse(Ptr<Socket> socket);
 
   Ptr<Socket> receiveSocket;
-  Ptr<Socket> sendSocket;
+  Ptr<Socket> clientSocket;
 
   Ipv4Address actuatorAddress;
-  uint16_t actuatorPort = 5000;
 
   double threshold = 70.0;
+  uint16_t nextMessageId = 100;
 };

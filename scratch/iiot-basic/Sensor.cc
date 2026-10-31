@@ -1,23 +1,22 @@
 #include "Sensor.h"
+#include "Coap.h"
 #include <cstdint>
 #include <iomanip>
 #include <ios>
 #include <sstream>
 #include <string>
+#include <vector>
 
-void Sensor::SetDestination(Ipv4Address address, uint16_t port) {
+void Sensor::SetDestination(Ipv4Address address) {
   this->destinationAddress = address;
-  this->destinationPort = port;
 }
-
-void Sensor::SetInterval(Time interval) { this->interval = interval; }
 
 void Sensor::StartApplication() {
   socket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
   socket->Bind();
 
-  // start sending readings as soon as the application starts
-  sequence = 1;
+  socket->SetRecvCallback(MakeCallback(&Sensor::HandleResponse, this));
+  std::cout << "SENSOR: CoAP client started" << std::endl;
 
   sendEvent = Simulator::ScheduleNow(&Sensor::SendReading, this);
 }
@@ -26,6 +25,7 @@ void Sensor::StopApplication() {
   Simulator::Cancel(sendEvent);
 
   if (socket) {
+    socket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
     socket->Close();
     socket = nullptr;
   }
@@ -38,24 +38,46 @@ void Sensor::SendReading() {
   const double temperature = readings[index];
 
   std::ostringstream output;
-  output << "TEMP seq=" << sequence << " temperature=" << std::fixed
-         << std::setprecision(1) << temperature;
+  output << std::fixed << std::setprecision(1) << temperature;
 
-  const std::string message = output.str();
+  const std::string payload = output.str();
+  Coap::Message request =
+      Coap::MakePost(nextMessageId++, "temperature", payload);
 
-  Ptr<Packet> packet =
-      Create<Packet>(reinterpret_cast<const uint8_t *>(message.data()),
-                     static_cast<uint32_t>(message.size()));
+  const Address destination = InetSocketAddress(destinationAddress, Coap::PORT);
 
-  // 0 is flag
-  socket->SendTo(packet, 0,
-                 InetSocketAddress(destinationAddress, destinationPort));
+  Coap::Send(socket, destination, request);
 
   std::cout << std::fixed << std::setprecision(3) << "["
-            << Simulator::Now().GetSeconds() << " s] SENSOR: Sent " << message
-            << std::endl;
+            << Simulator::Now().GetSeconds()
+            << " s] SENSOR: CoAP POST /temperature payload=" << payload
+            << " MID=" << request.messageId << std::endl;
 
   sequence++;
 
-  sendEvent = Simulator::Schedule(interval, &Sensor::SendReading, this);
+  sendEvent = Simulator::Schedule(Seconds(1.0), &Sensor::SendReading, this);
+}
+
+void Sensor::HandleResponse(Ptr<Socket> socket) {
+  Address senderAddress;
+  Ptr<Packet> packet;
+
+  while ((packet = socket->RecvFrom(senderAddress))) {
+    std::vector<uint8_t> bytes(packet->GetSize());
+
+    packet->CopyData(bytes.data(), static_cast<uint32_t>(bytes.size()));
+
+    Coap::Message response;
+
+    if (not Coap::Decode(bytes.data(), bytes.size(), response)) {
+      std::cout << "SENSOR: Invalid CoAP response" << std::endl;
+      continue;
+    }
+
+    std::cout << std::fixed << std::setprecision(3) << "["
+              << Simulator::Now().GetSeconds()
+              << " s] SENSOR: Received CoAP response"
+              << " code=" << static_cast<int>(response.code)
+              << " MID=" << response.messageId << std::endl;
+  }
 }
