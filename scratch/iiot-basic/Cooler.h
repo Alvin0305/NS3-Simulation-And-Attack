@@ -8,6 +8,8 @@
 using namespace ns3;
 
 class Cooler : public Application {
+  enum Status { ON, OFF };
+
 private:
   void StartApplication() override;
   void StopApplication() override;
@@ -15,4 +17,5 @@ private:
   void HandleRead(Ptr<Socket> socket);
 
   Ptr<Socket> socket;
+  Status status = OFF;
 };

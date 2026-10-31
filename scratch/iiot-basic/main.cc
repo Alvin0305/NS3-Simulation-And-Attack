@@ -1,3 +1,4 @@
+#include "Attacker.h"
 #include "Cooler.h"
 #include "PLC.h"
 #include "Sensor.h"
@@ -61,6 +62,12 @@ int main(int argc, char *argv[]) {
   cooler->AddApplication(coolerApp);
   coolerApp->SetStartTime(Seconds(0.0));
   coolerApp->SetStopTime(Seconds(5.5));
+
+  Ptr<Attacker> attackerApp = CreateObject<Attacker>();
+  attackerApp->SetTarget(coolerAddress);
+  attacker->AddApplication(attackerApp);
+  attackerApp->SetStartTime(Seconds(2.5));
+  attackerApp->SetStopTime(Seconds(5.0));
 
   csma.EnablePcapAll("iiot-coap", true);
 

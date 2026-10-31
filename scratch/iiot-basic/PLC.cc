@@ -1,10 +1,9 @@
 #include "PLC.h"
 #include "Coap.h"
+#include "Logger.h"
 #include <cstddef>
 #include <cstdint>
 #include <exception>
-#include <iomanip>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -27,8 +26,7 @@ void PLC::StartApplication() {
   clientSocket->SetRecvCallback(
       MakeCallback(&PLC::HandleActuatorResponse, this));
 
-  std::cout << "PLC: CoAP server started on UDP port " << Coap::PORT
-            << std::endl;
+  PLC_LOG_INFO("CoAP Server started on UDP port: {}", Coap::PORT);
 }
 
 void PLC::StopApplication() {
@@ -57,15 +55,12 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
     Coap::Message request;
 
     if (not Coap::Decode(bytes.data(), bytes.size(), request)) {
-      std::cout << "PLC: Invalid CoAP request" << std::endl;
+      PLC_LOG_ERROR("Invalid CoAP request");
       continue;
     }
 
-    std::cout << std::fixed << std::setprecision(3) << "["
-              << Simulator::Now().GetSeconds()
-              << " s] PLC: Received CoAP request" << " path=/" << request.path
-              << " code=" << static_cast<int>(request.code)
-              << " MID=" << request.messageId << std::endl;
+    PLC_LOG_INFO("Received CoAP request path=/{} code={}, MID={}", request.path,
+                 static_cast<int>(request.code), request.messageId);
 
     if (request.type != Coap::CON || request.code != Coap::POST ||
         request.path != "temperature") {
@@ -84,7 +79,7 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
         throw std::invalid_argument("Extra characters in temperature");
       }
     } catch (const std::exception &e) {
-      std::cout << "PLC: Invalid temperature payload" << std::endl;
+      PLC_LOG_ERROR("Invalid Temperature payload");
       Coap::Message response = Coap::MakeResponse(request, Coap::NOT_FOUND);
       Coap::Send(socket, senderAddress, response);
       continue;
@@ -96,10 +91,8 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
     const bool coolerOn = temperature > threshold;
     const std::string command = coolerOn ? "COOLER ON" : "COOLER OFF";
 
-    std::cout << std::fixed << std::setprecision(1)
-              << "PLC: Temperature=" << temperature
-              << " C, threshold=" << threshold << " C" << std::endl;
-    std::cout << "PLC: Decision=" << command << std::endl;
+    PLC_LOG_INFO("Temperature={} C, threshold={} C, Decision={}", temperature,
+                 threshold, command);
 
     Coap::Message actuatorRequest =
         Coap::MakePost(nextMessageId++, "command", command);
@@ -109,8 +102,8 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
 
     Coap::Send(clientSocket, actuatorDestination, actuatorRequest);
 
-    std::cout << "PLC: CoAP POST /command" << " payload=" << command
-              << " MID=" << actuatorRequest.messageId << std::endl;
+    PLC_LOG_INFO("CoAP POST /command payload={}, MID={}", command,
+                 actuatorRequest.messageId);
   }
 }
 
@@ -125,13 +118,11 @@ void PLC::HandleActuatorResponse(Ptr<Socket> socket) {
     Coap::Message response;
 
     if (not Coap::Decode(bytes.data(), bytes.size(), response)) {
-      std::cout << "PLC: Invalid actuator response" << std::endl;
+      PLC_LOG_ERROR("Invalid actuator response");
       continue;
     }
 
-    std::cout << std::fixed << std::setprecision(3) << "["
-              << Simulator::Now().GetSeconds() << " s] PLC: Actuator response"
-              << " code=" << static_cast<int>(response.code)
-              << " MID=" << response.messageId << std::endl;
+    PLC_LOG_INFO("Actuator response code={}, MID={}",
+                 static_cast<int>(response.code), response.messageId);
   }
 }

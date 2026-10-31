@@ -1,5 +1,6 @@
 #include "Sensor.h"
 #include "Coap.h"
+#include "Logger.h"
 #include <cstdint>
 #include <iomanip>
 #include <ios>
@@ -16,7 +17,7 @@ void Sensor::StartApplication() {
   socket->Bind();
 
   socket->SetRecvCallback(MakeCallback(&Sensor::HandleResponse, this));
-  std::cout << "SENSOR: CoAP client started" << std::endl;
+  SENSOR_LOG_INFO("CoAP client started");
 
   sendEvent = Simulator::ScheduleNow(&Sensor::SendReading, this);
 }
@@ -48,10 +49,8 @@ void Sensor::SendReading() {
 
   Coap::Send(socket, destination, request);
 
-  std::cout << std::fixed << std::setprecision(3) << "["
-            << Simulator::Now().GetSeconds()
-            << " s] SENSOR: CoAP POST /temperature payload=" << payload
-            << " MID=" << request.messageId << std::endl;
+  SENSOR_LOG_INFO("CoAP POST /temperature payload={}, MID={}", payload,
+                  request.messageId);
 
   sequence++;
 
@@ -70,14 +69,12 @@ void Sensor::HandleResponse(Ptr<Socket> socket) {
     Coap::Message response;
 
     if (not Coap::Decode(bytes.data(), bytes.size(), response)) {
+      SENSOR_LOG_ERROR("Invalid CoAP response");
       std::cout << "SENSOR: Invalid CoAP response" << std::endl;
       continue;
     }
 
-    std::cout << std::fixed << std::setprecision(3) << "["
-              << Simulator::Now().GetSeconds()
-              << " s] SENSOR: Received CoAP response"
-              << " code=" << static_cast<int>(response.code)
-              << " MID=" << response.messageId << std::endl;
+    SENSOR_LOG_INFO("Received CoAP response code={}, MID={}",
+                    static_cast<int>(response.code), response.messageId);
   }
 }

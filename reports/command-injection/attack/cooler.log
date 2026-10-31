@@ -1,0 +1,11 @@
+[0.000 s] [Cooler] [Cooler.cc:11] [INFO] CoAP server started on UDP port: 5683
+[1.010 s] [Cooler] [Cooler.cc:43] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=100
+[1.010 s] [Cooler] [Cooler.cc:54] [INFO] Cooler state=OFF
+[2.000 s] [Cooler] [Cooler.cc:43] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=101
+[2.000 s] [Cooler] [Cooler.cc:51] [INFO] Cooler state=ON
+[2.504 s] [Cooler] [Cooler.cc:43] [INFO] Received CoAP request from=10.1.1.4, path=/command, MID=500
+[2.504 s] [Cooler] [Cooler.cc:54] [INFO] Cooler state=OFF
+[3.000 s] [Cooler] [Cooler.cc:43] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=102
+[3.000 s] [Cooler] [Cooler.cc:51] [INFO] Cooler state=ON
+[4.000 s] [Cooler] [Cooler.cc:43] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=103
+[4.000 s] [Cooler] [Cooler.cc:54] [INFO] Cooler state=OFF
