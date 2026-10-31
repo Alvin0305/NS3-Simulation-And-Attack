@@ -1,0 +1,81 @@
+alvin@alvin-laptop ~/Me/NITC/Sem7/Minor/Assignment3/ns-3.49 (master)
+❯ ns3 run scratch/iiot-basic/main.cc
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+
+========== IIoT LAN ==========
+Sensor:   10.1.1.1
+PLC:      10.1.1.2
+Actuator: 10.1.1.3
+Attacker: 10.1.1.4
+==============================
+
+
+Starting IIoT CoAP Simluation
+
+[0.000 s] [PLC] [PLC.cc:30] [INFO] CoAP Server started on UDP port: 5683
+[0.000 s] [Cooler] [Cooler.cc:16] [INFO] CoAP server started on UDP port: 5683
+[0.000 s] [Attacker] [Attacker.cc:49] [INFO] Promiscous packet capture enabled
+[1.000 s] [Sensor] [Sensor.cc:20] [INFO] CoAP client started
+[1.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=65.0, MID=1
+[1.008 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=1
+[1.008 s] [PLC] [PLC.cc:95] [INFO] Temperature=65 C, threshold=70 C, Decision=COOLER OFF
+[1.008 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER OFF, sequence=1, MID=100
+[1.010 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=100, payload=COOLER OFF|1|e61ac1f94006bf35c96baaeb8783f830f7ca074348dbe58a103368e73184d41f
+[1.010 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=1
+[1.010 s] [Cooler] [Cooler.cc:258] [INFO] Status unchanged: OFF, source=10.1.1.2
+[1.010 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=100, payload=COOLER OFF|1|e61ac1f94006bf35c96baaeb8783f830f7ca074348dbe58a103368e73184d41f
+[1.010 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=100
+[1.011 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=1
+[2.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=85.0, MID=2
+[2.000 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=2
+[2.000 s] [PLC] [PLC.cc:95] [INFO] Temperature=85 C, threshold=70 C, Decision=COOLER ON
+[2.000 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER ON, sequence=2, MID=101
+[2.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=2
+[2.000 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=101, payload=COOLER ON|2|a2c2ae2fd819576792ac18ff188c6b79112fc6db7c90b3e62ec5643d4c27a49c
+[2.000 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=2
+[2.000 s] [Cooler] [Cooler.cc:252] [INFO] Status changed: OFF -> ON, source=10.1.1.2
+[2.000 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=101, payload=COOLER ON|2|a2c2ae2fd819576792ac18ff188c6b79112fc6db7c90b3e62ec5643d4c27a49c
+[2.000 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=101
+[2.500 s] [Attacker] [Attacker.cc:276] [INFO] Sending unauthenticated command injection
+[2.500 s] [Attacker] [Attacker.cc:288] [INFO] Sent unauthenticated POST /command, MID=500
+[2.500 s] [Attacker] [Attacker.cc:296] [INFO] Sending spoofed command without HMAC
+[2.500 s] [Attacker] [Attacker.cc:235] [INFO] Sent unauthenticated spoofed packet: forged_source=10.1.1.2, destination=10.1.1.3, MID=501
+[2.500 s] [Attacker] [Attacker.cc:249] [INFO] Attempting invalid-HMAC attack: payload=COOLER OFF|99|0000000000000000000000000000000000000000000000000000000000000000, MID=502
+[2.500 s] [Attacker] [Attacker.cc:235] [INFO] Sent invalid-HMAC packet: forged_source=10.1.1.2, destination=10.1.1.3, MID=502
+[2.504 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.4, path=/command, MID=500, payload=COOLER OFF
+[2.504 s] [Cooler] [Cooler.cc:69] [WARN] ACCESS DENIED: source=10.1.1.4, authorized PLC=10.1.1.2, reason=source IP not allowed
+[2.504 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=501, payload=COOLER OFF
+[2.504 s] [Cooler] [Cooler.cc:96] [WARN] AUTHENTICATION FAILED: missing command metadata, source=10.1.1.2
+[2.504 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=502, payload=COOLER OFF|99|0000000000000000000000000000000000000000000000000000000000000000
+[2.504 s] [Cooler] [Cooler.cc:186] [WARN] AUTHENTICATION FAILED: invalid HMAC, source=10.1.1.2, sequence=99
+[2.504 s] [Attacker] [Attacker.cc:86] [INFO] Received response code=131, MID=500
+[2.504 s] [Attacker] [Attacker.cc:96] [WARN] Command REJECTED by the cooler: unauthorized sender. MID=500
+[3.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=85.0, MID=3
+[3.000 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=3
+[3.000 s] [PLC] [PLC.cc:95] [INFO] Temperature=85 C, threshold=70 C, Decision=COOLER ON
+[3.000 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER ON, sequence=3, MID=102
+[3.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=3
+[3.000 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=102, payload=COOLER ON|3|bb7745b9cd783906fdf1c891354221cfc61664a6044c834d757b72a1b1a36bf9
+[3.000 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=3
+[3.000 s] [Cooler] [Cooler.cc:258] [INFO] Status unchanged: ON, source=10.1.1.2
+[3.000 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=102, payload=COOLER ON|3|bb7745b9cd783906fdf1c891354221cfc61664a6044c834d757b72a1b1a36bf9
+[3.000 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=102
+[4.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=55.0, MID=4
+[4.000 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=4
+[4.000 s] [PLC] [PLC.cc:95] [INFO] Temperature=55 C, threshold=70 C, Decision=COOLER OFF
+[4.000 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER OFF, sequence=4, MID=103
+[4.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=4
+[4.000 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=103, payload=COOLER OFF|4|df1387ddc6133c1fc0a9df849aaf0a1203cea0c0a9a026fd91a7514ecd8241de
+[4.000 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=4
+[4.000 s] [Cooler] [Cooler.cc:252] [INFO] Status changed: ON -> OFF, source=10.1.1.2
+[4.000 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=103, payload=COOLER OFF|4|df1387ddc6133c1fc0a9df849aaf0a1203cea0c0a9a026fd91a7514ecd8241de
+[4.000 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=103
+[4.500 s] [Attacker] [Attacker.cc:264] [INFO] Attempting replay attack using captured PLC command: MID=103
+[4.500 s] [Attacker] [Attacker.cc:235] [INFO] Sent replay packet: forged_source=10.1.1.2, destination=10.1.1.3, MID=103
+[4.500 s] [Attacker] [Attacker.cc:270] [INFO] Replayed original CoAP request with its original MID and HMAC
+[4.500 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=103, payload=COOLER OFF|4|df1387ddc6133c1fc0a9df849aaf0a1203cea0c0a9a026fd91a7514ecd8241de
+[4.500 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=4
+[4.500 s] [Cooler] [Cooler.cc:215] [WARN] REPLAY REJECTED: received sequence=4, last accepted=4, source=10.1.1.2
+
+Simulation completed.

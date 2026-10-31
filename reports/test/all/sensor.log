@@ -1,0 +1,9 @@
+[1.000 s] [Sensor] [Sensor.cc:20] [INFO] CoAP client started
+[1.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=65.0, MID=1
+[1.011 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=1
+[2.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=85.0, MID=2
+[2.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=2
+[3.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=85.0, MID=3
+[3.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=3
+[4.000 s] [Sensor] [Sensor.cc:52] [INFO] CoAP POST /temperature payload=55.0, MID=4
+[4.000 s] [Sensor] [Sensor.cc:77] [INFO] Received CoAP response code=68, MID=4

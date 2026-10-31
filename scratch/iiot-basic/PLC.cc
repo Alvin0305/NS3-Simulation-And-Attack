@@ -119,8 +119,8 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
     if (result < 0) {
       PLC_LOG_ERROR("Failed to send authenticated actuator command");
     } else {
-      PLC_LOG_INFO("CoAP POST /command payload={}, MID={}", command,
-                   actuatorRequest.messageId);
+      PLC_LOG_INFO("CoAP POST /command payload={}, sequence={}, MID={}",
+                   command, sequence, actuatorRequest.messageId);
     }
   }
 }

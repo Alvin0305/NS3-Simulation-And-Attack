@@ -1,0 +1,22 @@
+[0.000 s] [Cooler] [Cooler.cc:16] [INFO] CoAP server started on UDP port: 5683
+[1.010 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=100, payload=COOLER OFF|1|e61ac1f94006bf35c96baaeb8783f830f7ca074348dbe58a103368e73184d41f
+[1.010 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=1
+[1.010 s] [Cooler] [Cooler.cc:258] [INFO] Status unchanged: OFF, source=10.1.1.2
+[2.000 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=101, payload=COOLER ON|2|a2c2ae2fd819576792ac18ff188c6b79112fc6db7c90b3e62ec5643d4c27a49c
+[2.000 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=2
+[2.000 s] [Cooler] [Cooler.cc:252] [INFO] Status changed: OFF -> ON, source=10.1.1.2
+[2.504 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.4, path=/command, MID=500, payload=COOLER OFF
+[2.504 s] [Cooler] [Cooler.cc:69] [WARN] ACCESS DENIED: source=10.1.1.4, authorized PLC=10.1.1.2, reason=source IP not allowed
+[2.504 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=501, payload=COOLER OFF
+[2.504 s] [Cooler] [Cooler.cc:96] [WARN] AUTHENTICATION FAILED: missing command metadata, source=10.1.1.2
+[2.504 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=502, payload=COOLER OFF|99|0000000000000000000000000000000000000000000000000000000000000000
+[2.504 s] [Cooler] [Cooler.cc:186] [WARN] AUTHENTICATION FAILED: invalid HMAC, source=10.1.1.2, sequence=99
+[3.000 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=102, payload=COOLER ON|3|bb7745b9cd783906fdf1c891354221cfc61664a6044c834d757b72a1b1a36bf9
+[3.000 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=3
+[3.000 s] [Cooler] [Cooler.cc:258] [INFO] Status unchanged: ON, source=10.1.1.2
+[4.000 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=103, payload=COOLER OFF|4|df1387ddc6133c1fc0a9df849aaf0a1203cea0c0a9a026fd91a7514ecd8241de
+[4.000 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=4
+[4.000 s] [Cooler] [Cooler.cc:252] [INFO] Status changed: ON -> OFF, source=10.1.1.2
+[4.500 s] [Cooler] [Cooler.cc:52] [INFO] Received CoAP request from=10.1.1.2, path=/command, MID=103, payload=COOLER OFF|4|df1387ddc6133c1fc0a9df849aaf0a1203cea0c0a9a026fd91a7514ecd8241de
+[4.500 s] [Cooler] [Cooler.cc:196] [INFO] HMAC verification successful: source=10.1.1.2, sequence=4
+[4.500 s] [Cooler] [Cooler.cc:215] [WARN] REPLAY REJECTED: received sequence=4, last accepted=4, source=10.1.1.2

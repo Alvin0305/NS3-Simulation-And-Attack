@@ -1,0 +1,16 @@
+[0.000 s] [Attacker] [Attacker.cc:49] [INFO] Promiscous packet capture enabled
+[1.010 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=100, payload=COOLER OFF|1|e61ac1f94006bf35c96baaeb8783f830f7ca074348dbe58a103368e73184d41f
+[2.000 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=101, payload=COOLER ON|2|a2c2ae2fd819576792ac18ff188c6b79112fc6db7c90b3e62ec5643d4c27a49c
+[2.500 s] [Attacker] [Attacker.cc:276] [INFO] Sending unauthenticated command injection
+[2.500 s] [Attacker] [Attacker.cc:288] [INFO] Sent unauthenticated POST /command, MID=500
+[2.500 s] [Attacker] [Attacker.cc:296] [INFO] Sending spoofed command without HMAC
+[2.500 s] [Attacker] [Attacker.cc:235] [INFO] Sent unauthenticated spoofed packet: forged_source=10.1.1.2, destination=10.1.1.3, MID=501
+[2.500 s] [Attacker] [Attacker.cc:249] [INFO] Attempting invalid-HMAC attack: payload=COOLER OFF|99|0000000000000000000000000000000000000000000000000000000000000000, MID=502
+[2.500 s] [Attacker] [Attacker.cc:235] [INFO] Sent invalid-HMAC packet: forged_source=10.1.1.2, destination=10.1.1.3, MID=502
+[2.504 s] [Attacker] [Attacker.cc:86] [INFO] Received response code=131, MID=500
+[2.504 s] [Attacker] [Attacker.cc:96] [WARN] Command REJECTED by the cooler: unauthorized sender. MID=500
+[3.000 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=102, payload=COOLER ON|3|bb7745b9cd783906fdf1c891354221cfc61664a6044c834d757b72a1b1a36bf9
+[4.000 s] [Attacker] [Attacker.cc:184] [INFO] Captured PLC command for replay: source=10.1.1.2, MID=103, payload=COOLER OFF|4|df1387ddc6133c1fc0a9df849aaf0a1203cea0c0a9a026fd91a7514ecd8241de
+[4.500 s] [Attacker] [Attacker.cc:264] [WARN] Attempting replay attack using captured PLC command: MID=103
+[4.500 s] [Attacker] [Attacker.cc:235] [INFO] Sent replay packet: forged_source=10.1.1.2, destination=10.1.1.3, MID=103
+[4.500 s] [Attacker] [Attacker.cc:270] [INFO] Replayed original CoAP request with its original MID and HMAC

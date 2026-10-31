@@ -261,7 +261,7 @@ void Attacker::SendReplayAttack() {
     return;
   }
 
-  ATTACKER_LOG_WARN(
+  ATTACKER_LOG_INFO(
       "Attempting replay attack using captured PLC command: MID={}",
       capturedMessageId);
 

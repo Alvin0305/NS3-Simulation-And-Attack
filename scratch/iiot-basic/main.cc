@@ -12,7 +12,7 @@ using namespace ns3;
 
 int main(int argc, char *argv[]) {
   ConfigParser parser;
-  IIoTConfig config = parser.parse("config.hmac.json");
+  IIoTConfig config = parser.parse("config.no-hmac-defense.json");
 
   NodeContainer nodes;
   nodes.Create(4);
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   plcApp->SetStartTime(Seconds(0.0));
   plcApp->SetStopTime(Seconds(5.5));
 
-  Ptr<Cooler> coolerApp = CreateObject<Cooler>();
+  Ptr<Cooler> coolerApp = CreateObject<Cooler>(config);
   cooler->AddApplication(coolerApp);
   coolerApp->SetStartTime(Seconds(0.0));
   coolerApp->SetStopTime(Seconds(5.5));

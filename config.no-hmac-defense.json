@@ -1,0 +1,9 @@
+{
+  "do-direct-command-injection": true,
+  "send-spoofed-packet": true,
+  "send-invalid-hmac": true,
+  "send-replay-attack": true,
+  "defend-direct-command-injection": false,
+  "defend-ip-spoofing": true,
+  "defend-replay-attack": true
+}

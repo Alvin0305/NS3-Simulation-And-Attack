@@ -1,0 +1,17 @@
+[0.000 s] [PLC] [PLC.cc:30] [INFO] CoAP Server started on UDP port: 5683
+[1.008 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=1
+[1.008 s] [PLC] [PLC.cc:95] [INFO] Temperature=65 C, threshold=70 C, Decision=COOLER OFF
+[1.008 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER OFF, sequence=1, MID=100
+[1.010 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=100
+[2.000 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=2
+[2.000 s] [PLC] [PLC.cc:95] [INFO] Temperature=85 C, threshold=70 C, Decision=COOLER ON
+[2.000 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER ON, sequence=2, MID=101
+[2.000 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=101
+[3.000 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=3
+[3.000 s] [PLC] [PLC.cc:95] [INFO] Temperature=85 C, threshold=70 C, Decision=COOLER ON
+[3.000 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER ON, sequence=3, MID=102
+[3.000 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=102
+[4.000 s] [PLC] [PLC.cc:63] [INFO] Received CoAP request path=/temperature code=2, MID=4
+[4.000 s] [PLC] [PLC.cc:95] [INFO] Temperature=55 C, threshold=70 C, Decision=COOLER OFF
+[4.000 s] [PLC] [PLC.cc:122] [INFO] CoAP POST /command payload=COOLER OFF, sequence=4, MID=103
+[4.000 s] [PLC] [PLC.cc:143] [INFO] Actuator response code=68, MID=103

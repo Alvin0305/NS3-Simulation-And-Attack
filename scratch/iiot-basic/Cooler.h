@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IIoTConfig.h"
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/network-module.h"
@@ -10,6 +11,8 @@ using namespace ns3;
 
 class Cooler : public Application {
 public:
+  Cooler(const IIoTConfig &config) : config(config){};
+
   enum Status { ON, OFF };
 
   friend inline std::ostream &operator<<(std::ostream &out,
@@ -34,6 +37,8 @@ private:
   void StopApplication() override;
 
   void HandleRead(Ptr<Socket> socket);
+
+  const IIoTConfig &config;
 
   Ptr<Socket> socket;
   Status status = OFF;

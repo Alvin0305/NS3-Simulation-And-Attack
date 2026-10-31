@@ -27,6 +27,11 @@ IIoTConfig ConfigParser::parse(const std::string configFileName) const {
     config.sendInvalidHMAC = j.at("send-invalid-hmac").get<bool>();
     config.sendReplayAttack = j.at("send-replay-attack").get<bool>();
 
+    config.defendDirectCommandInjection =
+        j.at("defend-direct-command-injection").get<bool>();
+    config.defendIPSpoofing = j.at("defend-ip-spoofing").get<bool>();
+    config.defendReplayAttack = j.at("defend-replay-attack").get<bool>();
+
     return config;
   } catch (const std::exception &e) {
     LOG_ERROR("Config parsing failed: {}", e.what());
