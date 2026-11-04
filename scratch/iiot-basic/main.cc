@@ -13,7 +13,7 @@ using namespace ns3;
 
 int main(int argc, char* argv[]) {
     ConfigParser parser;
-    IIoTConfig config = parser.parse("config.no-hmac-defense.json");
+    IIoTConfig config = parser.parse("config.no-defense.json");
 
     NodeContainer nodes;
     nodes.Create(4);
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     std::cout << "\n========== IIoT LAN ==========\n";
     std::cout << "Sensor:   " << sensorAddress << "\n";
     std::cout << "PLC:      " << plcAddress << "\n";
-    std::cout << "Actuator: " << coolerAddress << "\n";
+    std::cout << "Cooler: " << coolerAddress << "\n";
     std::cout << "Attacker: " << attackerAddress << "\n";
     std::cout << "==============================\n\n";
 

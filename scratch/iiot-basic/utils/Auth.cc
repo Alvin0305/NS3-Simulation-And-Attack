@@ -9,7 +9,7 @@
 #include <sstream>
 
 namespace {
-    constexpr char SHARED_SECRET[] = "ns3-iiot-demo-key-abcdefghijklmnopqrstuvwxy";
+    constexpr char SHARED_SECRET[] = "ns3-iot-demo-key-abcdefghijklmnopqrstuvwxyz";
 
     constexpr std::size_t SHA256_LENGTH = 32;
 

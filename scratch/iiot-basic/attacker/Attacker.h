@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#define IPv4_HEX 0x0800
+
 namespace ns3 {
     class Attacker : public Application {
       public:

@@ -51,7 +51,6 @@ namespace ns3 {
         ATTACKER_LOG_INFO("Promiscous packet capture enabled");
 
         Simulator::Schedule(Seconds(2.5), &Attacker::SendConfiguredAttacks, this);
-
         if (config.sendReplayAttack) {
             Simulator::Schedule(Seconds(4.5), &Attacker::SendReplayAttack, this);
         }
@@ -85,23 +84,27 @@ namespace ns3 {
                 continue;
             }
 
-            ATTACKER_LOG_INFO("Received response code={}, MID={}", static_cast<unsigned>(response.code), response.messageId);
+            Ipv4Address address = InetSocketAddress::ConvertFrom(senderAddress).GetIpv4();
+            ATTACKER_LOG_INFO("Received response code={}, Message ID={}, From={}",
+                              static_cast<unsigned>(response.code),
+                              response.messageId,
+                              address);
 
             switch (response.code) {
                 case Coap::CHANGED:
-                    ATTACKER_LOG_INFO("Command accepted by the cooler. MID={}", response.messageId);
+                    ATTACKER_LOG_INFO("Command accepted by the cooler. Message ID={}", response.messageId);
                     break;
 
                 case Coap::FORBIDDEN:
-                    ATTACKER_LOG_WARN("Command REJECTED by the cooler: unauthorized sender. MID={}", response.messageId);
+                    ATTACKER_LOG_WARN("Command REJECTED by the cooler: unauthorized sender. Message ID={}", response.messageId);
                     break;
 
                 case Coap::NOT_FOUND:
-                    ATTACKER_LOG_WARN("Command failed: resource not found. MID={}", response.messageId);
+                    ATTACKER_LOG_WARN("Command failed: resource not found. Message ID={}", response.messageId);
                     break;
 
                 default:
-                    ATTACKER_LOG_WARN("Received an unexpected CoAP response code={} for MID={}",
+                    ATTACKER_LOG_WARN("Received an unexpected CoAP response code={} for Message ID={}",
                                       static_cast<unsigned>(response.code),
                                       response.messageId);
                     break;
@@ -122,7 +125,7 @@ namespace ns3 {
                                   const Address& from,
                                   const Address& to,
                                   NetDevice::PacketType packetType) {
-        if (protocol != 0x0800) {
+        if (protocol != IPv4_HEX) {
             return false;
         }
 
@@ -153,7 +156,6 @@ namespace ns3 {
         }
 
         copy->CopyData(bytes.data(), static_cast<uint32_t>(bytes.size()));
-
         Coap::Message message;
         if (!Coap::Decode(bytes.data(), bytes.size(), message)) {
             return false;
@@ -174,7 +176,7 @@ namespace ns3 {
         capturedMessageId = message.messageId;
         hasCapturedCommand = true;
 
-        ATTACKER_LOG_INFO("Captured PLC command for replay: source={}, MID={}, payload={}",
+        ATTACKER_LOG_INFO("Captured PLC command for replay: source={}, Message ID={}, payload={}",
                           constants::plcIP,
                           capturedMessageId,
                           message.payload);
@@ -182,7 +184,7 @@ namespace ns3 {
         return false;
     }
 
-    void Attacker::SendSpoofedCoapBytes(const std::vector<uint8_t>& coapBytes, uint16_t mid, const std::string& attackName) {
+    void Attacker::SendSpoofedCoapBytes(const std::vector<uint8_t>& coapBytes, uint16_t messageId, const std::string& attackName) {
         const Ipv4Address forgedSource(constants::plcIP);
         const Ipv4Address destination(constants::coolerIP);
 
@@ -201,16 +203,14 @@ namespace ns3 {
         ip.SetDestination(destination);
         ip.SetProtocol(constants::protocol::udp);
         ip.SetTtl(64);
-        ip.SetIdentification(mid);
+        ip.SetIdentification(messageId);
         ip.SetPayloadSize(packet->GetSize());
 
         packet->AddHeader(ip);
 
         if (!rawSocket) {
             rawSocket = Socket::CreateSocket(GetNode(), Ipv4RawSocketFactory::GetTypeId());
-
             rawSocket->SetAttribute("Protocol", UintegerValue(constants::protocol::udp));
-
             rawSocket->SetAttribute("IpHeaderInclude", BooleanValue(true));
         }
 
@@ -224,21 +224,17 @@ namespace ns3 {
                               attackName,
                               constants::plcIP,
                               constants::coolerIP,
-                              mid);
+                              messageId);
         }
     }
 
     void Attacker::SendInvalidHmacAttack() {
         const std::string invalidPayload = "COOLER OFF|99|" + std::string(64, '0');
-
         Coap::Message request = Coap::MakePost(messageId, constants::commandString, invalidPayload);
-
         const std::vector<uint8_t> bytes = Coap::Encode(request);
 
         ATTACKER_LOG_INFO("Attempting invalid-HMAC attack: payload={}, MID={}", invalidPayload, messageId);
-
         SendSpoofedCoapBytes(bytes, messageId, "invalid-HMAC");
-
         ++messageId;
     }
 
@@ -249,20 +245,15 @@ namespace ns3 {
         }
 
         ATTACKER_LOG_INFO("Attempting replay attack using captured PLC command: MID={}", capturedMessageId);
-
         SendSpoofedCoapBytes(capturedCoapBytes, capturedMessageId, "replay");
-
         ATTACKER_LOG_INFO("Replayed original CoAP request with its original MID and HMAC");
     }
 
     void Attacker::SendConfiguredAttacks() {
         if (config.doDirectCommandInjection) {
             ATTACKER_LOG_INFO("Sending unauthenticated command injection");
-
             Coap::Message request = Coap::MakePost(messageId, constants::commandString, constants::coolerOffCommand);
-
             const Address destination = InetSocketAddress(targetAddress, Coap::PORT);
-
             const int result = Coap::Send(socket, destination, request);
 
             if (result < 0) {
