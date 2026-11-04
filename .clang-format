@@ -2,13 +2,58 @@
 Language: Cpp
 BasedOnStyle: Microsoft
 
+# General formatting
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 130
+Standard: "c++20"
+LineEnding: LF
+
+# Braces
+BreakBeforeBraces: Attach
+InsertBraces: true
+
+BraceWrapping:
+  AfterFunction: false
+  AfterControlStatement: false
+  AfterStruct: false
+  AfterEnum: false
+  AfterUnion: false
+  BeforeElse: false
+  AfterCaseLabel: false
+
+# Short statements
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortCaseLabelsOnASingleLine: false
+
+# Function arguments and parameters
 AllowAllArgumentsOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 BinPackArguments: false
 BinPackParameters: false
-BreakAfterReturnType: TopLevelDefinitions
+PackConstructorInitializers: Never
+
+# Return types and templates
+BreakAfterReturnType: None
 BreakTemplateDeclarations: Yes
-ColumnLimit: 100
+
+# Pointers and qualifiers
+PointerAlignment: Left
+QualifierAlignment: Left
+
+# Parentheses and namespaces
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+NamespaceIndentation: All
+
+# Case labels
+IndentCaseLabels: true
+IndentCaseBlocks: true
+
+# Includes
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '^(<|")ns3/'
@@ -20,20 +65,11 @@ IncludeCategories:
   - Regex: ".*"
     Priority: 1
     SortPriority: 0
-InsertBraces: true
+
+# Other
+SeparateDefinitionBlocks: Always
 InsertNewlineAtEOF: true
 KeepEmptyLines:
   AtEndOfFile: false
   AtStartOfBlock: false
   AtStartOfFile: false
-LineEnding: LF
-PackConstructorInitializers: Never
-PointerAlignment: Left
-QualifierAlignment: Left
-SeparateDefinitionBlocks: Always
-Standard: "c++20"
-
-IndentWidth: 4
-TabWidth: 4
-UseTab: Never
-AllowShortFunctionsOnASingleLine: None

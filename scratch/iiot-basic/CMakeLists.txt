@@ -1,15 +1,17 @@
 find_package(OpenSSL REQUIRED COMPONENTS Crypto)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 set(IIOT_SOURCES
     main.cc
-    Attacker.cc
-    Auth.cc
-    Coap.cc
-    ConfigParser.cc
-    Cooler.cc
-    Logger.cc
-    PLC.cc
-    Sensor.cc
+    attacker/Attacker.cc
+    utils/Auth.cc
+    protocol/Coap.cc
+    utils/ConfigParser.cc
+    cooler/Cooler.cc
+    logger/Logger.cc
+    plc/PLC.cc
+    sensor/Sensor.cc
 )
 
 build_exec(
