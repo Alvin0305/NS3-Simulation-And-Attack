@@ -11,32 +11,29 @@
 #include <string>
 
 void Cooler::StartApplication() {
-    socket = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
-    socket->Bind(InetSocketAddress(Ipv4Address::GetAny(), Coap::PORT));
-    socket->SetRecvCallback(MakeCallback(&Cooler::HandleRead, this));
+    socketToPLC = Socket::CreateSocket(GetNode(), UdpSocketFactory::GetTypeId());
+    socketToPLC->Bind(InetSocketAddress(Ipv4Address::GetAny(), Coap::PORT));
+    socketToPLC->SetRecvCallback(MakeCallback(&Cooler::HandleRequest, this));
 
     COOLER_LOG_INFO("CoAP server started on UDP port: {}", Coap::PORT);
 }
 
 void Cooler::StopApplication() {
-    if (socket) {
-        socket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
-        socket->Close();
-        socket = nullptr;
+    if (socketToPLC) {
+        socketToPLC->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
+        socketToPLC->Close();
+        socketToPLC = nullptr;
     }
 }
 
-void Cooler::HandleRead(Ptr<Socket> socket) {
+void Cooler::HandleRequest(Ptr<Socket> socket) {
     Address senderAddress;
     Ptr<Packet> packet;
 
     const Ipv4Address authorizedPLCAddress(constants::plcIP);
-
     while ((packet = socket->RecvFrom(senderAddress))) {
         std::vector<uint8_t> bytes(packet->GetSize());
-
         packet->CopyData(bytes.data(), static_cast<uint32_t>(bytes.size()));
-
         Coap::Message request;
 
         if (!Coap::Decode(bytes.data(), bytes.size(), request)) {
@@ -50,8 +47,7 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
         }
 
         const Ipv4Address senderIP = InetSocketAddress::ConvertFrom(senderAddress).GetIpv4();
-
-        COOLER_LOG_INFO("Received CoAP request from={}, path=/{}, MID={}, payload={}",
+        COOLER_LOG_INFO("Received CoAP request from={}, path=/{}, Message ID={}, payload={}",
                         senderIP,
                         request.path,
                         request.messageId,
@@ -59,9 +55,7 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
 
         if (request.type != Coap::CON || request.code != Coap::POST || request.path != constants::commandString) {
             COOLER_LOG_WARN("Invalid request type, method, or command path");
-
             Coap::Message response = Coap::MakeResponse(request, Coap::NOT_FOUND);
-
             Coap::Send(socket, senderAddress, response);
             continue;
         }
@@ -73,7 +67,6 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
                             authorizedPLCAddress);
 
             Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
             Coap::Send(socket, senderAddress, response);
             continue;
         }
@@ -93,14 +86,11 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
 
         if (firstSeparator == std::string::npos) {
             command = request.payload;
-
             if (config.defendDirectCommandInjection) {
                 COOLER_LOG_WARN("AUTHENTICATION FAILED: missing command metadata, "
                                 "source={}",
                                 senderIP);
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
@@ -109,52 +99,41 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
                 COOLER_LOG_WARN("REPLAY PROTECTION FAILED: missing sequence metadata, "
                                 "source={}",
                                 senderIP);
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
 
             COOLER_LOG_WARN("Accepting unauthenticated command format because "
                             "authentication and replay defenses are disabled");
-
         } else {
             const std::size_t secondSeparator = request.payload.find('|', firstSeparator + 1);
 
             if (secondSeparator == std::string::npos || request.payload.find('|', secondSeparator + 1) != std::string::npos) {
                 COOLER_LOG_WARN("Rejected malformed command metadata, source={}", senderIP);
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
 
             command = request.payload.substr(0, firstSeparator);
-
             sequenceText = request.payload.substr(firstSeparator + 1, secondSeparator - firstSeparator - 1);
-
             receivedTag = request.payload.substr(secondSeparator + 1);
 
             try {
                 std::size_t parsedCharacters = 0;
-
                 if (sequenceText.empty() || sequenceText.find_first_not_of("0123456789") != std::string::npos) {
                     throw std::invalid_argument("Invalid sequence number");
                 }
 
                 sequence = std::stoull(sequenceText, &parsedCharacters);
-
                 if (parsedCharacters != sequenceText.size()) {
                     throw std::invalid_argument("Invalid sequence number");
                 }
 
             } catch (const std::exception&) {
                 COOLER_LOG_WARN("Rejected invalid sequence number, source={}", senderIP);
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
@@ -167,29 +146,22 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
                 COOLER_LOG_WARN("AUTHENTICATION FAILED: missing or malformed HMAC, "
                                 "source={}",
                                 senderIP);
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
 
             const std::string canonicalMessage = std::string("/command\n") + command + "\n" + sequenceText;
-
             if (!Auth::VerifyTag(canonicalMessage, receivedTag)) {
                 COOLER_LOG_WARN("AUTHENTICATION FAILED: invalid HMAC, "
                                 "source={}, sequence={}",
                                 senderIP,
                                 sequence);
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
-
             COOLER_LOG_INFO("HMAC verification successful: source={}, sequence={}", senderIP, sequence);
-
         } else {
             COOLER_LOG_WARN("HMAC authentication defense disabled by configuration");
         }
@@ -197,9 +169,7 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
         if (config.defendReplayAttack) {
             if (!hasMetadata) {
                 COOLER_LOG_WARN("REPLAY PROTECTION FAILED: sequence unavailable");
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
@@ -210,30 +180,22 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
                                 sequence,
                                 lastAcceptedSequence,
                                 senderIP);
-
                 Coap::Message response = Coap::MakeResponse(request, Coap::FORBIDDEN);
-
                 Coap::Send(socket, senderAddress, response);
                 continue;
             }
-
         } else {
             COOLER_LOG_WARN("Replay protection disabled by configuration");
         }
 
         Status requestedStatus;
-
         if (command == constants::coolerOnCommand) {
             requestedStatus = ON;
-
         } else if (command == constants::coolerOffCommand) {
             requestedStatus = OFF;
-
         } else {
             COOLER_LOG_ERROR("Unknown command: {}", command);
-
             Coap::Message response = Coap::MakeResponse(request, Coap::NOT_FOUND);
-
             Coap::Send(socket, senderAddress, response);
             continue;
         }
@@ -245,15 +207,12 @@ void Cooler::HandleRead(Ptr<Socket> socket) {
 
         if (status != requestedStatus) {
             COOLER_LOG_INFO("Status changed: {} -> {}, source={}", status, requestedStatus, senderIP);
-
             status = requestedStatus;
-
         } else {
             COOLER_LOG_INFO("Status unchanged: {}, source={}", status, senderIP);
         }
 
         Coap::Message response = Coap::MakeResponse(request, Coap::CHANGED);
-
         Coap::Send(socket, senderAddress, response);
     }
 }

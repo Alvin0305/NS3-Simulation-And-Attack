@@ -51,20 +51,21 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
 
     while ((packet = socket->RecvFrom(senderAddress))) {
         std::vector<uint8_t> bytes(packet->GetSize());
-
         packet->CopyData(bytes.data(), static_cast<uint32_t>(bytes.size()));
 
         Coap::Message request;
-
         if (not Coap::Decode(bytes.data(), bytes.size(), request)) {
             PLC_LOG_ERROR("Invalid CoAP request");
             continue;
         }
 
-        PLC_LOG_INFO("Received CoAP request path=/{} code={}, MID={}",
+        InetSocketAddress address = InetSocketAddress::ConvertFrom(senderAddress);
+        PLC_LOG_INFO("Received CoAP request path=/{} code={}, Message ID={}, IP={}, Port={}",
                      request.path,
                      static_cast<int>(request.code),
-                     request.messageId);
+                     request.messageId,
+                     address.GetIpv4(),
+                     address.GetPort());
 
         if (request.type != Coap::CON || request.code != Coap::POST || request.path != "temperature") {
             Coap::Message response = Coap::MakeResponse(request, Coap::NOT_FOUND);
@@ -73,7 +74,6 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
         }
 
         double temperature;
-
         try {
             std::size_t parsedCharacters = 0;
             temperature = std::stod(request.payload, &parsedCharacters);
@@ -107,16 +107,14 @@ void PLC::HandleTemperatureRequest(Ptr<Socket> socket) {
 
         const std::string authenticatedPayload = command + "|" + std::to_string(sequence) + "|" + tag;
 
-        Coap::Message actuatorRequest = Coap::MakePost(nextMessageId++, "command", authenticatedPayload);
-
-        const Address actuatorDestination = InetSocketAddress(coolerAddress, Coap::PORT);
-
-        int result = Coap::Send(sendSocketToCooler, actuatorDestination, actuatorRequest);
+        Coap::Message coolerRequest = Coap::MakePost(nextMessageId++, "command", authenticatedPayload);
+        const Address coolerDestination = InetSocketAddress(coolerAddress, Coap::PORT);
+        int result = Coap::Send(sendSocketToCooler, coolerDestination, coolerRequest);
 
         if (result < 0) {
             PLC_LOG_ERROR("Failed to send authenticated actuator command");
         } else {
-            PLC_LOG_INFO("CoAP POST /command payload={}, sequence={}, MID={}", command, sequence, actuatorRequest.messageId);
+            PLC_LOG_INFO("CoAP POST /command payload={}, sequence={}, Message ID={}", command, sequence, coolerRequest.messageId);
         }
     }
 }
@@ -136,6 +134,11 @@ void PLC::HandleCoolerResponse(Ptr<Socket> socket) {
             continue;
         }
 
-        PLC_LOG_INFO("Actuator response code={}, MID={}", static_cast<int>(response.code), response.messageId);
+        InetSocketAddress address = InetSocketAddress::ConvertFrom(senderAddress);
+        PLC_LOG_INFO("Actuator response code={}, Message ID={}, IP={}, Port={}",
+                     static_cast<int>(response.code),
+                     response.messageId,
+                     address.GetIpv4(),
+                     address.GetPort());
     }
 }

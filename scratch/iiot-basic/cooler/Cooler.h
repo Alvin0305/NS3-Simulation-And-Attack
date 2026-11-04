@@ -41,11 +41,11 @@ class Cooler : public Application {
     void StartApplication() override;
     void StopApplication() override;
 
-    void HandleRead(Ptr<Socket> socket);
+    void HandleRequest(Ptr<Socket> socket);
 
     const IIoTConfig& config;
 
-    Ptr<Socket> socket;
+    Ptr<Socket> socketToPLC;
     Status status = OFF;
 
     uint64_t lastAcceptedSequence = 0;
